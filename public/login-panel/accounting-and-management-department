@@ -6,13 +6,13 @@
     <title>SRMS Premium Admin Panel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- 🔒 DYNAMIC REDIRECT & ILLEGAL ACCESS BLOCKER -->
+    <!-- 🔒 DYNAMIC REDIRECT, ILLEGAL ACCESS BLOCKER & LINK ROUTER -->
     <script>
     function enforceSecurity() {
         let token = sessionStorage.getItem('portal_token');
         let isActiveSession = sessionStorage.getItem('srms_active_session');
         
-        // If someone comes with a token in URL (e.g. valid cross-domain link), save it and clean URL
+        // টোকেন যদি URL এর মাধ্যমে আসে, তবে সেটি সেভ করে URL ক্লিন করে ফেলবে
         const urlParams = new URLSearchParams(window.location.search);
         const tokenFromUrl = urlParams.get('token');
         
@@ -25,22 +25,27 @@
             }
             return; 
         }
-
-        // Only enforce redirect on App/Module pages. Since this IS the login page, we don't redirect if no token.
     }
     enforceSecurity();
 
-    // 🌐 DYNAMIC MODULE LAUNCHER (Works on ANY DOMAIN)
+    // 🌐 DYNAMIC MODULE LAUNCHER (POP-UP BLOCKER BYPASS & RELATIVE PATHS)
     window.openAppModule = function(path) {
         let token = sessionStorage.getItem('portal_token');
-        let baseUrl = window.location.protocol + "//" + window.location.host;
-        let targetUrl = baseUrl + "/" + path;
+        
+        // রিলেটিভ রুট পাথ (ডোমেইন যাই হোক না কেন, স্লাশ থেকে শুরু হবে)
+        let targetUrl = "/" + path;
         
         if(token) {
-            targetUrl += "?token=" + token;
+            targetUrl += "?token=" + encodeURIComponent(token);
         }
-        // Open securely in new tab
-        window.open(targetUrl, '_blank');
+        
+        // পপ-আপ ব্লকার এড়ানোর জন্য <a> ট্যাগ তৈরি করে ক্লিক করানো হচ্ছে
+        let link = document.createElement('a');
+        link.href = targetUrl;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
     </script>
 
@@ -370,7 +375,7 @@
             const msg = document.getElementById('success-msg');
             const btn = document.getElementById('updateBtn');
             
-            if(!newPass || newPass.length < 6) { msg.style.color = "var(--danger-color)"; msg.innerText = "⚠️️ Minimum 6 characters required!"; return; }
+            if(!newPass || newPass.length < 6) { msg.style.color = "var(--danger-color)"; msg.innerText = "⚠ Minimum 6 characters required!"; return; }
             
             btn.disabled = true;
             document.getElementById('updateSpinner').style.display = "inline-block";
